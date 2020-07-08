@@ -1,4 +1,5 @@
 from exhentaidownloader.web import connector
+from tests.web.mock_response import MockResponse
 from mock import patch
 import requests
 
@@ -67,11 +68,37 @@ class TestConector:
         mock_post.return_value = mock_response
         ipb_member_id, ipb_pass_hash = connector.obtain_credentials(mock_user, mock_pass)
         mock_post.assert_called_once_with("POST", url, headers=headers, data=payload, files=files)
-        assert ipb_member_id == None
-        assert ipb_pass_hash == None
+        assert ipb_member_id is None
+        assert ipb_pass_hash is None
 
-    def test_obtain_web_with_cookie_ok(self):
-        pass
+    @patch('exhentaidownloader.web.connector.requests.request')
+    def test_obtain_web_with_cookie_ok(self, mock_request):
+        url = 'mock_url'
+        mock_member_id = 'mock_member_id'
+        mock_pass_hash = 'mock_pass_hash'
+        mock_content = 'mock_content'
+        headers = {
+            'Cookie': f'ipb_member_id=1{mock_member_id}; ipb_pass_hash={mock_pass_hash}'
+        }
+        mock_response = MockResponse(mock_content, 200)
+        mock_request.return_value = mock_response
+        response = connector.obtain_document(mock_member_id, mock_pass_hash, url)
+        mock_request.assert_called_once_with("GET", url, headers=headers)
+        assert response == mock_response
+        assert len(response.content) > 0
 
-    def test_obtain_web_with_cookie_nok(self):
-        pass
+    @patch('exhentaidownloader.web.connector.requests.request')
+    def test_obtain_web_with_cookie_nok(self, mock_request):
+        url = 'mock_url'
+        mock_member_id = 'mock_member_id'
+        mock_pass_hash = 'mock_pass_hash'
+        mock_content = ''
+        headers = {
+            'Cookie': f'ipb_member_id=1{mock_member_id}; ipb_pass_hash={mock_pass_hash}'
+        }
+        mock_response = MockResponse(mock_content, 200)
+        mock_request.return_value = mock_response
+        response = connector.obtain_document(mock_member_id, mock_pass_hash, url)
+        mock_request.assert_called_once_with("GET", url, headers=headers)
+        assert response == mock_response
+        assert len(response.content) == 0
