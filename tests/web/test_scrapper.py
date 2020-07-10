@@ -16,11 +16,25 @@ class TestScrapper:
         link = get_first_image_page_link(mock_response)
         assert link == expected_link
 
+    def test_retrieve_link_for_first_image_from_gallery_but_not_found(self):
+        data = b''
+        mock_response = MockResponse(data, 200)
+        expected_link = ''
+        link = get_first_image_page_link(mock_response)
+        assert link == expected_link
+
     def test_retrieve_link_for_next_image_from_image_page(self):
         with open(f'{test_files_path}/image_middle_gallery.html', 'rb') as file:
             data = file.read()
         mock_response = MockResponse(data, 200)
         expected_link = 'https://exhentai.org/s/ebc9f3feb8/574260-6'
+        link = get_next_image_page_link(mock_response)
+        assert link == expected_link
+
+    def test_retrieve_link_for_next_image_from_image_page_but_not_found(self):
+        data = b''
+        mock_response = MockResponse(data, 200)
+        expected_link = ''
         link = get_next_image_page_link(mock_response)
         assert link == expected_link
 
@@ -34,11 +48,25 @@ class TestScrapper:
         link = get_image_link(mock_response)
         assert link == expected_link
 
+    def test_retrieve_link_for_actual_image_from_image_page_but_not_found(self):
+        data = b''
+        mock_response = MockResponse(data, 200)
+        expected_link = ''
+        link = get_image_link(mock_response)
+        assert link == expected_link
+
     def test_get_title(self):
         with open(f'{test_files_path}/gallery.html', 'rb') as file:
             data = file.read()
         mock_response = MockResponse(data, 200)
         expected_title = 'High Heels'
+        title = get_gallery_title(mock_response)
+        assert title == expected_title
+
+    def test_get_title_but_not_found(self):
+        data = b''
+        mock_response = MockResponse(data, 200)
+        expected_title = ''
         title = get_gallery_title(mock_response)
         assert title == expected_title
 
@@ -49,3 +77,5 @@ class TestScrapper:
         expected_title = '[hentaiworks (Aruma)] Futanari Sennou Kaizou Koujou 2/4 [Chinese]'
         title = get_gallery_title(mock_response)
         assert title == expected_title
+
+
