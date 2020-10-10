@@ -1,5 +1,7 @@
 import requests
 
+from exhentaidownloader.web.credentials import Credentials
+
 
 def obtain_credentials(user: str, password: str):
     url = "https://forums.e-hentai.org/index.php?act=Login&CODE=01"
@@ -27,12 +29,12 @@ def obtain_credentials(user: str, password: str):
     cookies = response.cookies.get_dict()
     ipb_member_id = cookies.get('ipb_member_id')
     ipb_pass_hash = cookies.get('ipb_pass_hash')
-    return ipb_member_id, ipb_pass_hash
+    return Credentials(ipb_member_id, ipb_pass_hash)
 
 
-def obtain_document(ipb_member_id: str, ipb_pass_hash: str, url: str):
+def obtain_document(url: str, credentials: Credentials):
     headers = {
-        'Cookie': f'ipb_member_id=1{ipb_member_id}; ipb_pass_hash={ipb_pass_hash}'
+        'Cookie': f'ipb_member_id=1{credentials.ipb_member_id}; ipb_pass_hash={credentials.ipb_pass_hash}'
     }
     response = requests.request("GET", url, headers=headers)
     return response
