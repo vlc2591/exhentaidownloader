@@ -1,7 +1,7 @@
 import os
 
 from exhentaidownloader.web.scrapper import get_first_image_page_link, get_next_image_page_link, get_image_link, \
-    get_gallery_title
+    get_gallery_title, get_number_of_images
 from tests.web.mock_response import MockResponse
 
 test_files_path = os.path.abspath(os.path.dirname(__file__))
@@ -78,4 +78,18 @@ class TestScrapper:
         title = get_gallery_title(mock_response)
         assert title == expected_title
 
+    def test_get_total_number_of_images(self):
+        with open(f'{test_files_path}/gallery.html', 'rb') as file:
+            data_gallery_1 = file.read()
+        mock_response_gallery_1 = MockResponse(data_gallery_1, 200)
+        expected_number_images_gallery_1 = 252
+        result_1 = get_number_of_images(mock_response_gallery_1)
 
+        with open(f'{test_files_path}/gallery_with_japanese_title.html', 'rb') as file:
+            data_gallery_2 = file.read()
+        mock_response_gallery_2 = MockResponse(data_gallery_2, 200)
+        expected_number_images_gallery_2 = 33
+        result_2 = get_number_of_images(mock_response_gallery_2)
+
+        assert result_1 == expected_number_images_gallery_1
+        assert result_2 == expected_number_images_gallery_2
