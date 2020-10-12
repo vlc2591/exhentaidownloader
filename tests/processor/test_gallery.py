@@ -50,8 +50,8 @@ class TestGalleryProcessor:
         mock_get_title.assert_called_once_with(mock_data)
 
     @patch('exhentaidownloader.processor.gallery.obtain_document')
-    @patch('exhentaidownloader.processor.gallery.get_gallery_title')
     @patch('exhentaidownloader.processor.gallery.get_number_of_images')
+    @patch('exhentaidownloader.processor.gallery.get_first_image_page_link')
     def test_init_with_custom_path_and_title_with_pauses(self, mock_get_first_image, mock_get_number_images,
                                                          mock_obtain_document):
         mock_credentials = Credentials(Mock(), Mock())
@@ -71,7 +71,11 @@ class TestGalleryProcessor:
     @patch('exhentaidownloader.processor.gallery.obtain_document')
     @patch('exhentaidownloader.processor.gallery.get_number_of_images')
     @patch('exhentaidownloader.processor.gallery.get_first_image_page_link')
-    def test_function_process_called_and_ok(self, mock_get_first_image, mock_get_number_images,
+    @patch('exhentaidownloader.processor.gallery.get_next_image_page_link')
+    @patch('exhentaidownloader.processor.gallery.get_image_link')
+    @patch.object(GalleryProcessor, 'random_pause')
+    def test_function_process_called_and_ok(self, mock_random_pause, mock_get_image_link, mock_get_next_page, mock_get_first_image,
+                                            mock_get_number_images,
                                             mock_obtain_document):
         mock_credentials = Credentials(Mock(), Mock())
         mock_url = 'mock_url'
@@ -81,15 +85,25 @@ class TestGalleryProcessor:
         mock_path = 'mock_path'
         mock_get_first_image.return_value = mock_first_image_url
         mock_get_number_images.return_value = mock_total_number_images
-        mock_obtain_document.return_value = Mock()
-        gallery_processor = GalleryProcessor(mock_url, mock_credentials, True, mock_path, mock_gallery_title)
 
         mock_images = ['image_2', 'image_3', 'image_4', 'image_5', 'image_5']
+        mock_obtain_document.side_effect = [mock_url, mock_first_image_url] + mock_images
+        mock_get_next_page.side_effect = mock_images
+        mock_get_image_link.side_effect = [mock_first_image_url] + mock_images
         expected_calls_get_image_link = []
-        expected_calls_obtain_document = [call()]
+        expected_calls_obtain_document = [call(mock_url, mock_credentials)]
+        expected_calls_next_page = []
         for x in range(1, 6):
             expected_calls_get_image_link.append(call(f'image_{x}'))
+            expected_calls_obtain_document.append(call(f'image_{x}', mock_credentials))
+            expected_calls_next_page.append(call(f'image_{x}'))
+        gallery_processor = GalleryProcessor(mock_url, mock_credentials, True, mock_path, mock_gallery_title)
         gallery_processor.process()
+
+        assert mock_get_next_page.call_args_list == expected_calls_next_page
+        assert mock_get_image_link.call_args_list == expected_calls_get_image_link
+        assert mock_obtain_document.call_args_list == expected_calls_obtain_document
+        assert mock_random_pause.call_count == 4
         # TODO assert folder creation is called
         # TODO assert image save is called
 

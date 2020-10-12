@@ -39,7 +39,7 @@ class GalleryProcessor:
             #TODO Save image
             #TODO Log progress
             current_image_page = get_next_image_page_link(image_page_data)
-            if self.random_pauses:
+            if self.random_pauses and previous_image_page != current_image_page:
                 self.random_pause()
 
 
